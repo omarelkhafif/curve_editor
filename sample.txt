@@ -1,0 +1,11 @@
+Polygon:
+    Segment: (100, 100)
+    Segment: (300, 100)
+    Segment: (300, 300)
+    Segment: (100, 300)
+
+Polygon:
+    Segment: (500, 150)
+    Segment: (500, 200, 550, 250, 600, 200)
+    Segment: (600, 150)
+    Segment: (600, 100, 550, 50, 500, 100)
