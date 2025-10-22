@@ -1,0 +1,226 @@
+Create a production-ready client-side HTML + JavaScript application
+for interactive polygon drawing and editing.
+Use Canvas 2D API and plain JavaScript modules only.
+No backend. Keep dependencies minimal.
+
+====================================================================
+1) UI AND LAYOUT
+====================================================================
+
+    Toolbar:
+        File  →  New, Open, Save, Save As
+        Edit  →  Undo, Redo, Delete
+        View  →  Zoom In, Zoom Out, Pan Up, Pan Down, Pan Left, Pan Right, Zoom All
+        Tools →  Select, Draw Polygon, Move
+
+    Main Widgets:
+        • Canvas Widget
+              - Interactive area for drawing, selecting, and editing polygons.
+
+        • Textual Editor
+              - Multiline text area showing polygon definitions.
+              - Includes an “Apply” button to reparse and update polygons.
+
+        • Status Panel
+              - Bottom bar showing:
+                    * Current tool
+                    * Parsing or validation messages
+                    * File name (or “Untitled”)
+                    * Current mouse position (integer X,Y in world coordinates)
+
+====================================================================
+2) COORDINATE SYSTEM AND SNAPPING
+====================================================================
+
+    • All world coordinates are integers.
+      No floating-point numbers in model or saved files.
+
+    • Snapping:
+          - Every click or drag snaps to the nearest integer coordinate.
+          - Rounding rule: standard rounding, ties (.5) round away from zero.
+          - Snapping applies during both drawing and vertex dragging.
+
+    • Mouse hover:
+          - Status panel continuously displays snapped integer X,Y
+            under cursor (in world coordinates via inverse transform).
+
+    • Optional:
+          - Visual grid overlay at integer coordinates.
+            (Grid is visual only, not stored or part of the model.)
+
+====================================================================
+3) DATA MODEL
+====================================================================
+
+    Each polygon is a cyclic ordered list of connected segments.
+
+    Segment types:
+        Line segment:
+            start = [x, y]
+            end   = next segment’s start
+
+        Quadratic Bézier segment:
+            start = [x, y]
+            c1    = [x, y]
+            c2    = [x, y]
+            end   = next segment’s start
+
+    All coordinates are integers.
+
+    Example (conceptual model):
+        {
+          "polygons": [
+            {
+              "segments": [
+                { "type": "line",   "start": [x, y] },
+                { "type": "bezier", "start": [x, y], "c1": [x, y], "c2": [x, y] }
+              ]
+            }
+          ]
+        }
+
+====================================================================
+4) TEXTUAL FORMAT
+====================================================================
+
+    Polygon textual format:
+
+        Polygon:
+            Segment: (x, y)
+            Segment: (x1, y1, x2, y2, x3, y3)
+
+    Interpretation:
+        • One point  →  line segment
+        • Three points → quadratic Bézier segment
+
+    Parsing Rules:
+        • Integers only (reject floats or malformed input)
+        • On Apply:
+              - Parse and validate full text
+              - If invalid: show error in status panel
+                    (line number, token index, expected vs found)
+              - Do not partially apply invalid data
+
+====================================================================
+5) DRAWING AND EDITING INTERACTIONS
+====================================================================
+
+    Draw Polygon Tool:
+        • First click   → start point (snapped)
+        • Second click  → end point (snapped)
+        • Next two clicks → optional control1, control2 (snapped)
+        • Press 's' to skip control points (creates line segment)
+        • Press 'e' to close polygon (connects to first point)
+        • Dashed previews:
+              - During end selection: start → mouse
+              - During control1 selection: start → control1
+              - During control2 selection: end → control2
+        • ESC cancels drawing
+        • Switching tools cancels active drawing
+
+    Select Tool:
+        • Click polygon to select (highlighted when active)
+
+    Move Tool:
+        • Drag vertices or control points (snapped)
+        • Canvas updates continuously
+        • Textual editor updates after drag ends
+
+    Delete Key:
+        • Deletes selected polygon or element
+        • Supports Undo/Redo
+
+====================================================================
+6) VIEW AND ZOOM / PAN
+====================================================================
+
+    • Zoom and Pan:
+          - Controlled via toolbar buttons (+ / – and arrows)
+          - Operate by modifying a 2D view transform (scale + translation)
+
+    • Zoom All:
+          - If polygons exist: fit all polygons within view (with margin)
+          - If no polygons: view rectangle = (0,0) to (3000,3000)
+
+    • On file load:
+          - Automatically perform Zoom All
+
+====================================================================
+7) FILE OPERATIONS
+====================================================================
+
+    • Use browser File System Access API (or fallback upload/download)
+    • File menu:
+          New     → clear workspace
+          Open    → load and parse textual file
+          Save    → overwrite current file
+          Save As → save under new name
+    • Show current file name in title/status panel, or “Untitled”
+
+====================================================================
+8) UNDO / REDO
+====================================================================
+
+    • Implement using Command Design Pattern.
+
+    • Command Types:
+          AddPolygonCommand
+          EditPolygonCommand
+          DeletePolygonCommand
+
+    • All user-visible state changes are undoable and redoable.
+
+====================================================================
+9) ARCHITECTURE AND SYNCHRONIZATION (MVC)
+====================================================================
+
+    Model:
+        - Polygon and segment data (integers only)
+
+    View:
+        - Canvas renderer applying the current view transform
+
+    Controller:
+        - Tool state machine
+        - Snapping logic
+        - Command execution
+
+    Synchronization:
+        • Canvas edits update model immediately
+        • Text editor refreshes after edit operation ends
+        • When Apply is pressed in text editor:
+              - Parse into new model
+              - If valid → replace model and rerender
+              - If invalid → keep old model and show error
+
+====================================================================
+10) VISUALS AND UX
+====================================================================
+
+    • Clean, minimal layout (CSS flex or grid)
+    • Responsive full-window design
+    • Clear selection and hover highlighting
+    • Status panel shows:
+          - Current tool
+          - Messages or errors
+          - File name
+          - Integer mouse X,Y (snapped)
+
+====================================================================
+11) QUALITY AND OUTPUT EXPECTATIONS
+====================================================================
+
+    • Deliver complete, production-quality HTML/JS/CSS
+    • Use ES modules for structure (one per subsystem)
+    • Include meaningful comments
+    • No TODOs or placeholders
+    • Ensure deterministic behavior for:
+          - Snapping
+          - Zooming
+          - Undo/Redo
+          - Parsing
+          - File handling
+
+====================================================================
+END OF PROMPT
+====================================================================
