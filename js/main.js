@@ -358,7 +358,7 @@ class App {
     }
 
     render() {
-        this.view.render(this.model, this.controller.getDrawState());
+        this.view.render(this.model, this.controller.getDrawState(), this.controller.currentTool);
     }
 }
 

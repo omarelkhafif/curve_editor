@@ -42,9 +42,9 @@ export class View {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     }
 
-    render(model, drawState = null) {
+    render(model, drawState = null, currentTool = null) {
         this.clear();
-        
+
         for (let i = 0; i < model.polygons.length; i++) {
             const polygon = model.polygons[i];
             const isSelected = i === model.selectedPolygonIndex;
@@ -54,6 +54,113 @@ export class View {
         if (drawState) {
             this.drawDrawState(drawState);
         }
+
+        // draw dynamic legend at bottom center
+        this.drawLegend(drawState, currentTool);
+    }
+
+    drawLegend(drawState, currentTool) {
+        const padding = 12;
+        const lineHeight = 18;
+        const maxWidth = Math.min(520, this.canvas.width - 40);
+        const linesCount = 4; // header + 3 dynamic lines
+        const height = linesCount * lineHeight + padding * 2;
+        const width = maxWidth;
+        const x = (this.canvas.width - width) / 2;
+        const y = this.canvas.height - height - 10;
+
+        // background box
+        this.ctx.save();
+        this.ctx.globalAlpha = 0.95;
+        this.ctx.fillStyle = 'rgba(44,62,80,0.95)';
+        this.ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+        this.ctx.lineWidth = 1;
+        this.ctx.beginPath();
+        this._roundRectPath(this.ctx, x, y, width, height, 8);
+        this.ctx.fill();
+        this.ctx.stroke();
+
+        // texts
+        this.ctx.fillStyle = '#ffffff';
+        this.ctx.font = '14px sans-serif';
+        this.ctx.textAlign = 'left';
+        this.ctx.textBaseline = 'top';
+
+        const tx = x + padding;
+        let ty = y + padding;
+
+        // Header - always "Place"
+        this.ctx.fillText('Place', tx, ty);
+        ty += lineHeight;
+
+        // Determine dynamic lines depending on drawState or currentTool
+        const dynamic = [];
+        if (!drawState) {
+            if (currentTool === 'draw') {
+                dynamic.push('Place first point of a polygon');
+            } else {
+                dynamic.push("Click 'Draw' to start placing polygon points");
+            }
+            dynamic.push('');
+            dynamic.push('');
+        } else {
+            if (drawState.waitingForEnd) {
+                dynamic.push('Place end point of current segment or press "e" to connect it to beginning of the polygon.');
+                dynamic.push('');
+                dynamic.push('');
+            } else if (drawState.waitingForC1) {
+                dynamic.push('Place 1st control point of bezier curve or press "s" to skip it.');
+                dynamic.push('');
+                dynamic.push('');
+            } else if (drawState.waitingForC2) {
+                dynamic.push('Place 2nd control point of bezier curve or press "s" to skip it.');
+                dynamic.push('');
+                dynamic.push('');
+            } else {
+                dynamic.push('Continue placing points');
+                dynamic.push('');
+                dynamic.push('');
+            }
+        }
+
+        this.ctx.fillStyle = '#ecf0f1';
+        this.ctx.font = '12px sans-serif';
+        for (let i = 0; i < 3; i++) {
+            const text = dynamic[i] || '';
+            // wrap long text
+            this._fillWrappedText(this.ctx, text, tx, ty + i * lineHeight, width - padding * 2, lineHeight);
+        }
+
+        this.ctx.restore();
+    }
+
+    _roundRectPath(ctx, x, y, w, h, r) {
+        const radius = Math.min(r, w / 2, h / 2);
+        ctx.moveTo(x + radius, y);
+        ctx.arcTo(x + w, y, x + w, y + h, radius);
+        ctx.arcTo(x + w, y + h, x, y + h, radius);
+        ctx.arcTo(x, y + h, x, y, radius);
+        ctx.arcTo(x, y, x + w, y, radius);
+        ctx.closePath();
+    }
+
+    _fillWrappedText(ctx, text, x, y, maxWidth, lineHeight) {
+        if (!text) return;
+        const words = text.split(' ');
+        let line = '';
+        let ty = y;
+        for (let n = 0; n < words.length; n++) {
+            const testLine = line + (line ? ' ' : '') + words[n];
+            const metrics = ctx.measureText(testLine);
+            if (metrics.width > maxWidth && line) {
+                ctx.fillText(line, x, ty);
+                line = words[n];
+                ty += lineHeight;
+            } else {
+                line = testLine;
+            }
+        }
+        if (line) ctx.fillText(line, x, ty);
     }
 
     drawPolygon(polygon, isSelected = false) {
@@ -93,11 +200,11 @@ export class View {
             for (const seg of polygon.segments) {
                 this.drawHandle(...seg.start, '#e74c3c');
                 if (seg.type === 'bezier') {
-                    this.drawHandle(...seg.c1, '#3498db');
-                    this.drawHandle(...seg.c2, '#3498db');
+                    this.drawHandle(...seg.c1, '#2c2e4dff');
+                    this.drawHandle(...seg.c2, '#16222aff');
                     
                     this.ctx.save();
-                    this.ctx.strokeStyle = '#95a5a6';
+                    this.ctx.strokeStyle = '#313737ff';
                     this.ctx.lineWidth = 1;
                     this.ctx.setLineDash([3, 3]);
                     
@@ -128,7 +235,7 @@ export class View {
     drawHandle(worldX, worldY, color) {
         const [x, y] = this.worldToScreen(worldX, worldY);
         this.ctx.fillStyle = color;
-        this.ctx.strokeStyle = 'white';
+        this.ctx.strokeStyle = '#231f20ff';
         this.ctx.lineWidth = 2;
         this.ctx.beginPath();
         this.ctx.arc(x, y, 5, 0, Math.PI * 2);
@@ -138,7 +245,7 @@ export class View {
 
     drawDrawState(drawState) {
         this.ctx.save();
-        this.ctx.strokeStyle = '#ff6b35';
+        this.ctx.strokeStyle = '#ff355aff';
         this.ctx.lineWidth = 2;
         this.ctx.setLineDash([5, 5]);
 
@@ -169,7 +276,7 @@ export class View {
             this.ctx.stroke();
 
             for (const seg of drawState.segments) {
-                this.drawHandle(...seg.start, '#ff6b35');
+                this.drawHandle(...seg.start, '#3c35ffff');
             }
         }
 
