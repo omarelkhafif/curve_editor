@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polygon Editor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <nav class="toolbar">
+            <div class="menu">
+                <button class="menu-btn" data-menu="file">File</button>
+                <div class="dropdown" data-dropdown="file">
+                    <button data-action="new">New</button>
+                    <button data-action="open">Open</button>
+                    <button data-action="save">Save</button>
+                    <button data-action="save-as">Save As</button>
+                </div>
+            </div>
+            <div class="menu">
+                <button class="menu-btn" data-menu="edit">Edit</button>
+                <div class="dropdown" data-dropdown="edit">
+                    <button data-action="undo">Undo</button>
+                    <button data-action="redo">Redo</button>
+                    <button data-action="delete">Delete</button>
+                </div>
+            </div>
+            <div class="menu">
+                <button class="menu-btn" data-menu="view">View</button>
+                <div class="dropdown" data-dropdown="view">
+                    <button data-action="zoom-in">Zoom In</button>
+                    <button data-action="zoom-out">Zoom Out</button>
+                    <button data-action="pan-up">Pan Up</button>
+                    <button data-action="pan-down">Pan Down</button>
+                    <button data-action="pan-left">Pan Left</button>
+                    <button data-action="pan-right">Pan Right</button>
+                    <button data-action="zoom-all">Zoom All</button>
+                </div>
+            </div>
+            <div class="menu">
+                <button class="menu-btn" data-menu="tools">Tools</button>
+                <div class="dropdown" data-dropdown="tools">
+                    <button data-action="tool-select">Select</button>
+                    <button data-action="tool-draw">Draw Polygon</button>
+                    <button data-action="tool-move">Move</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="main-content">
+            <div class="canvas-container">
+                <canvas id="canvas"></canvas>
+            </div>
+            <div class="editor-panel">
+                <div class="editor-header">
+                    <h3>Textual Editor</h3>
+                    <button id="apply-btn" class="apply-btn">Apply</button>
+                </div>
+                <textarea id="text-editor" spellcheck="false"></textarea>
+            </div>
+        </div>
+
+        <div class="status-panel">
+            <span class="status-item" id="status-tool">Tool: Select</span>
+            <span class="status-item" id="status-message"></span>
+            <span class="status-item" id="status-file">Untitled</span>
+            <span class="status-item" id="status-coords">X: 0, Y: 0</span>
+        </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+</body>
+</html>
