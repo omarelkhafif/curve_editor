@@ -300,6 +300,7 @@ class App {
 
     onModelChange() {
         this.render();
+        this.updateTextEditor();
     }
 
     onToolChange(tool) {

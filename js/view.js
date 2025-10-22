@@ -138,7 +138,7 @@ export class View {
 
     drawDrawState(drawState) {
         this.ctx.save();
-        this.ctx.strokeStyle = '#3498db';
+        this.ctx.strokeStyle = '#ff6b35';
         this.ctx.lineWidth = 2;
         this.ctx.setLineDash([5, 5]);
 
@@ -169,7 +169,7 @@ export class View {
             this.ctx.stroke();
 
             for (const seg of drawState.segments) {
-                this.drawHandle(...seg.start, '#3498db');
+                this.drawHandle(...seg.start, '#ff6b35');
             }
         }
 
