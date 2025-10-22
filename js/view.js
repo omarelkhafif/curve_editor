@@ -31,7 +31,7 @@ export class View {
     }
 
     snap(value) {
-        return Math.round(value);
+        return Math.sign(value) * Math.floor(Math.abs(value) + 0.5);
     }
 
     snapPoint([x, y]) {
