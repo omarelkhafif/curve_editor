@@ -49,9 +49,10 @@ Polygon:
 ### Tools
 1. **Select Tool**: Click polygon to select (highlighted in red)
 2. **Draw Polygon Tool**:
-   - Click to place start/end points
+   - Click to place start point, then end point for each segment
    - Press 's' to skip control points (creates line segment)
-   - Press 'e' to close polygon
+   - Press 'e' to connect back to start point (still allows adding control points for final segment)
+   - Click two more times to add Bézier control points, or press 's' to skip
    - ESC cancels drawing
    - Dashed preview lines during drawing
 3. **Move Tool**: Drag vertices and control points (live updates)

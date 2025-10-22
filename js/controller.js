@@ -127,7 +127,8 @@ export class Controller {
                 currentC1: null,
                 currentC2: null,
                 previewStart: null,
-                previewEnd: null
+                previewEnd: null,
+                isClosing: false
             };
             
             this.drawState.segments.push(new Segment('line', [snappedX, snappedY]));
@@ -149,15 +150,22 @@ export class Controller {
             lastSegment.c1 = this.drawState.currentC1;
             lastSegment.c2 = this.drawState.currentC2;
             
-            this.drawState.segments.push(new Segment('line', this.drawState.currentEnd));
-            this.drawState.currentStart = this.drawState.currentEnd;
-            this.drawState.currentEnd = null;
-            this.drawState.currentC1 = null;
-            this.drawState.currentC2 = null;
-            this.drawState.waitingForC2 = false;
-            this.drawState.waitingForEnd = true;
-            this.drawState.previewStart = null;
-            this.drawState.previewEnd = null;
+            if (this.drawState.isClosing) {
+                const polygon = new Polygon(this.drawState.segments);
+                const command = new AddPolygonCommand(this.model, polygon);
+                this.commandManager.executeCommand(command);
+                this.drawState = null;
+            } else {
+                this.drawState.segments.push(new Segment('line', this.drawState.currentEnd));
+                this.drawState.currentStart = this.drawState.currentEnd;
+                this.drawState.currentEnd = null;
+                this.drawState.currentC1 = null;
+                this.drawState.currentC2 = null;
+                this.drawState.waitingForC2 = false;
+                this.drawState.waitingForEnd = true;
+                this.drawState.previewStart = null;
+                this.drawState.previewEnd = null;
+            }
         }
     }
 
@@ -165,20 +173,37 @@ export class Controller {
         if (this.currentTool === 'draw' && this.drawState) {
             if (key === 's' || key === 'S') {
                 if (this.drawState.waitingForC1 && this.drawState.currentEnd) {
-                    this.drawState.segments.push(new Segment('line', this.drawState.currentEnd));
-                    this.drawState.currentStart = this.drawState.currentEnd;
-                    this.drawState.currentEnd = null;
-                    this.drawState.waitingForC1 = false;
-                    this.drawState.waitingForEnd = true;
-                    this.drawState.previewStart = null;
-                    this.drawState.previewEnd = null;
+                    if (this.drawState.isClosing) {
+                        const polygon = new Polygon(this.drawState.segments);
+                        const command = new AddPolygonCommand(this.model, polygon);
+                        this.commandManager.executeCommand(command);
+                        this.drawState = null;
+                    } else {
+                        this.drawState.segments.push(new Segment('line', this.drawState.currentEnd));
+                        this.drawState.currentStart = this.drawState.currentEnd;
+                        this.drawState.currentEnd = null;
+                        this.drawState.waitingForC1 = false;
+                        this.drawState.waitingForEnd = true;
+                        this.drawState.previewStart = null;
+                        this.drawState.previewEnd = null;
+                    }
                 }
             } else if (key === 'e' || key === 'E') {
                 if (this.drawState.segments.length > 0) {
-                    const polygon = new Polygon(this.drawState.segments);
-                    const command = new AddPolygonCommand(this.model, polygon);
-                    this.commandManager.executeCommand(command);
-                    this.drawState = null;
+                    if (this.drawState.waitingForEnd) {
+                        const firstPoint = this.drawState.segments[0].start;
+                        this.drawState.currentEnd = firstPoint;
+                        this.drawState.waitingForEnd = false;
+                        this.drawState.waitingForC1 = true;
+                        this.drawState.isClosing = true;
+                        this.drawState.previewStart = null;
+                        this.drawState.previewEnd = null;
+                    } else if (this.drawState.waitingForC1 && this.drawState.isClosing) {
+                        const polygon = new Polygon(this.drawState.segments);
+                        const command = new AddPolygonCommand(this.model, polygon);
+                        this.commandManager.executeCommand(command);
+                        this.drawState = null;
+                    }
                 }
             } else if (key === 'Escape') {
                 this.drawState = null;
